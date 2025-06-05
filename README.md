@@ -155,18 +155,25 @@ The `combine_texts.py` script takes any CSV file with `text` and `image_descript
 
 ## Sample Data
 
-This repository includes a sample dataset (`sample_data.csv`) with 50 examples from the processed training data. The sample demonstrates the data structure after image description generation:
+This repository includes sample datasets with 50 examples from the processed training data, demonstrating the data structure after image description generation with different vision-language models:
 
+### Sample Files
+- **`sample_data_qwenvl.csv`**: Sample data with image descriptions generated using Qwen2.5-VL model
+- **`sample_data_internvl.csv`**: Sample data with image descriptions generated using InternVL3 model
+
+Both sample files use the same image IDs, allowing for direct comparison of how different vision-language models describe the same images.
+
+### Data Structure
 | Column | Description |
 |--------|-------------|
 | `image_id` | Unique identifier for the image (e.g., "840006160660983809.jpg") |
 | `text` | Original social media post text |
 | `label` | Sarcasm label (0: non-sarcastic, 1: sarcastic) |
-| `image_description` | Generated description using Qwen2.5-VL model |
+| `image_description` | Generated description (Qwen2.5-VL or InternVL3 depending on file) |
 | `image_location` | Path where the image was found during processing |
 | `combined_text` | Concatenation of original text and image description |
 
-**Note:** The sample data is provided for format reference and testing purposes. For full experiments, process the complete MMSD2.0 dataset using the provided scripts.
+**Note:** The sample data is provided for format reference, model comparison, and testing purposes. For full experiments, process the complete MMSD2.0 dataset using the provided scripts.
 
 ## Citations
 
