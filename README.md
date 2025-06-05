@@ -177,6 +177,23 @@ Both sample files use the same image IDs, allowing for direct comparison of how 
 
 ## Citations
 
+## Results
+
+We conducted a series of experiments using different configurations (learning rate and batch size) for our QwenVL + Roberta Base model. The results for the sarcasm detection task are summarized below:
+
+### Table: QwenVL + roberta base (all dataset) results
+
+| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
+|-----------------|-------|----------|-----------|--------|
+| (5e-05, 4)      | 80.41 | 80.53    | 81.32     | 80.53  |
+| (2e-05, 4)      | 81.12 | 81.40    | 81.52     | 81.40  |
+| (5e-05, 8)      | **81.88** | **82.07** | **82.42** | **82.07** |
+| (2e-05, 8)      | 81.36 | 81.53    | 82.01     | 81.53  |
+| (5e-05, 16)     | 81.32 | 82.04    | 81.72     | 81.61  |
+| (2e-05, 16)     | 80.66 | 80.86    | 81.21     | 80.86  |
+
+*Note: The best performing configuration is highlighted in bold.*
+
 ## License
 
 This project is for research purposes. Please refer to the MMSD2.0 dataset license for data usage terms.
