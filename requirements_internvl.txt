@@ -1,0 +1,5 @@
+lmdeploy==0.7.3  # LMDeploy for InternVL model deployment and inference
+pandas  # Data manipulation and CSV handling
+tqdm  # Progress bars for processing loops
+Pillow  # Image loading and processing
+timm  # PyTorch image models (required by some VL models)
