@@ -284,6 +284,36 @@ This table details the performance of the QwenVL + Roberta Base model when train
 | (5e-05, 16)     | 74.53 | 74.48    | 74.51     | 74.48  |
 | (2e-05, 16)     | 74.53 | 75.18    | 75.08     | 75.18  |
 
+---
+
+### Table: InternVL3-8B + roberta-base results (text-only)
+
+This table shows the performance of the InternVL3-8B + Roberta Base model when trained and evaluated using **only the textual content** from the dataset.
+
+| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
+|-----------------|-------|----------|-----------|--------|
+| (5e-05, 4)      | 36.29 | 56.95    | 32.44     | 56.95  |
+| (2e-05, 4)      | **77.86** | **78.08** | **78.48** | **78.08** |
+| (5e-05, 8)      | 76.09 | 76.26    | 76.96     | 76.26  |
+| (2e-05, 8)      | 76.21 | 76.38    | 77.07     | 76.38  |
+| (5e-05, 16)     | 77.20 | 77.38    | 77.97     | 77.38  |
+| (2e-05, 16)     | 77.17 | 77.38    | 77.86     | 77.38  |
+
+---
+
+### Table: InternVL3-8B + roberta-base results (image description only)
+
+This table details the performance of the InternVL3-8B + Roberta Base model when trained and evaluated using **only the generated image descriptions** as input.
+
+| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
+|-----------------|-------|----------|-----------|--------|
+| (5e-05, 4)      | 67.81 | 68.12    | 68.60     | 68.12  |
+| (2e-05, 4)      | **75.93** | **76.26** | **76.47** | **76.26** |
+| (5e-05, 8)      | 74.31 | 74.84    | 74.81     | 74.84  |
+| (2e-05, 8)      | 75.50 | 75.84    | 76.04     | 75.84  |
+| (5e-05, 16)     | 74.40 | 74.68    | 75.05     | 74.68  |
+| (2e-05, 16)     | 74.83 | 75.22    | 75.35     | 75.22  |
+
 *Note: The best performing configuration for each experimental setup is highlighted in bold.*
 
 ## License
