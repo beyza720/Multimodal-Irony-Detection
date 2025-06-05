@@ -1,15 +1,16 @@
 transformers>=4.51.3
-torch==2.1.2 --index-url https://download.pytorch.org/whl/cu121
+torch==2.2.2 --index-url https://download.pytorch.org/whl/cu121  # Compatible with Qwen models (2.3.0, 2.4.0 also possible)
 tqdm
 wandb==0.15.12
-numpy>=1.19.5,<2.0.0
+numpy==1.26.4  # Version compatible with lmdeploy and trl requirements (<2.0.0 range)
 pandas
 scikit-learn==1.5.1
 accelerate==0.33.0
 evaluate==0.4.1
 trl==0.9.6
 peft==0.12.0
-bitsandbytes==0.43.3
+bitsandbytes==0.43.3  # Fixed version 
+triton==2.2.0  # Triton version compatible with torch 2.2.2
 Pillow==10.0.1
 timm==0.9.16
 sentencepiece==0.1.99

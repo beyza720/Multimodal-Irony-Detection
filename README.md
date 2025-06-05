@@ -23,6 +23,28 @@ The MMSD2.0 dataset is available at: [https://github.com/JoeYing1019/MMSD2.0](ht
 
 **Note**: Due to copyright and ethical considerations, the original images and texts from the dataset are not included in this repository. Please refer to the official MMSD2.0 repository linked above to access the complete dataset.
 
+### Dataset Setup
+
+After downloading the MMSD2.0 dataset, organize it as follows:
+
+```
+mmsd_dataset/
+├── extracted_part_1/    # Images directory 1
+├── extracted_part_2/    # Images directory 2
+├── extracted_part_3/    # Images directory 3
+├── extracted_part_4/    # Images directory 4
+├── extracted_part_5/    # Images directory 5
+├── extracted_part_6/    # Images directory 6
+├── train.json          # Training split annotations
+├── valid.json          # Validation split annotations
+└── test.json           # Test split annotations
+```
+
+**Important Notes:**
+- Images are distributed across 6 separate directories (`extracted_part_1` through `extracted_part_6`)
+- Each JSON file contains image IDs, text content, and sarcasm labels (0: non-sarcastic, 1: sarcastic)
+- Update the `dataset_path` variable in scripts to point to your `mmsd_dataset` directory location
+
 ## Key Components
 
 - **Image Description Generation**: Scripts for generating textual descriptions of images using models like InternVL and QwenVL
@@ -32,22 +54,68 @@ The MMSD2.0 dataset is available at: [https://github.com/JoeYing1019/MMSD2.0](ht
 
 ## Technology Stack
 
+- **Python 3.10+**
+- **PyTorch 2.2.2** for deep learning with CUDA support
+- **Transformers 4.51.3+** library for pre-trained models
+- **Weights & Biases** for experiment tracking
+- **Various vision-language models** (InternVL, QwenVL, PaliGemma)
+- **Quantization support** via bitsandbytes and triton
 
+## Environment Setup
+
+### Option 1: Virtual Environment (Recommended)
+```bash
+python3 -m venv qwen_env
+source qwen_env/bin/activate  # On Windows: qwen_env\Scripts\activate
+pip install -r requirements.txt
+```
+
+### Option 2: Conda Environment
+```bash
+conda create -n multimodal-sarcasm python=3.10
+conda activate multimodal-sarcasm
+pip install -r requirements.txt
+```
 
 ## Getting Started
 
 1. Clone this repository
-2. Install the required dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+2. Set up your environment (see Environment Setup above)
 3. Download the MMSD2.0 dataset from the official repository
-4. Configure your paths and experiment settings
-5. Run the desired experiments
+4. Organize the dataset according to the structure described in Dataset Setup
+5. Update dataset paths in the scripts to match your local setup
+6. Run the desired experiments
+
+### Example Usage
+
+**Image Description Generation:**
+```bash
+# For training data
+python image_description_scripts/qwen_vl_image_description.py
+
+# Note: Script is configured for train.json by default
+# For validation/test data, modify the script to use valid.json or test.json
+```
+
+**Text Classification:**
+```bash
+python text_classification/text_classification.py
+```
+
+## Script Adaptability
+
+The image description generation script (`qwen_vl_image_description.py`) is designed for the training split by default. To process validation or test data:
+
+1. Change `train_file = os.path.join(dataset_path, "train.json")` to:
+   - `valid_file = os.path.join(dataset_path, "valid.json")` for validation data
+   - `test_file = os.path.join(dataset_path, "test.json")` for test data
+
+2. Update the corresponding DataFrame loading and output file names accordingly
 
 ## Citation
 
 
+```
 
 ## License
 
