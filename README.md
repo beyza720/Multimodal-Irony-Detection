@@ -194,6 +194,19 @@ We conducted a series of experiments using different configurations (learning ra
 
 *Note: The best performing configuration is highlighted in bold.*
 
+### Table: InternVL3-8B + roberta base results
+
+| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
+|-----------------|-------|----------|-----------|--------|
+| (5e-05, 4)      | 79.68 | 79.83    | 80.49     | 79.83  |
+| (2e-05, 4)      | 79.94 | 80.37    | 80.34     | 80.37  |
+| (5e-05, 8)      | **81.62** | **81.82** | **82.14** | **81.82** |
+| (2e-05, 8)      | 79.67 | 80.03    | 80.07     | 80.03  |
+| (5e-05, 16)     | 80.30 | 80.68    | 80.68     | 80.70  |
+| (2e-05, 16)     | 79.31 | 79.87    | 79.80     | 79.87  |
+
+*Note: The best performing configuration is highlighted in bold.*
+
 ## License
 
 This project is for research purposes. Please refer to the MMSD2.0 dataset license for data usage terms.
