@@ -47,7 +47,10 @@ mmsd_dataset/
 
 ## Key Components
 
-- **Image Description Generation**: Scripts for generating textual descriptions of images using models like InternVL and QwenVL
+- **Image Description Generation**: Scripts for generating textual descriptions of images using multiple vision-language models
+  - **Qwen2.5-VL**: High-quality descriptions with quantization support
+  - **InternVL3**: Alternative model for comparison and ensemble approaches
+- **Text Combination**: Utilities for combining original text with generated image descriptions
 - **Text Classification**: Implementation of various transformer models for sarcasm detection
 - **Multimodal Analysis**: Experiments combining visual and textual features
 - **Zero-shot Learning**: Testing models' performance without specific training on the target task
@@ -57,38 +60,50 @@ mmsd_dataset/
 - **Python 3.10+**
 - **PyTorch 2.2.2** for deep learning with CUDA support
 - **Transformers 4.51.3+** library for pre-trained models
+- **LMDeploy 0.7.3** for InternVL model deployment
 - **Weights & Biases** for experiment tracking
-- **Various vision-language models** (InternVL, QwenVL, PaliGemma)
+- **Multiple vision-language models**:
+  - Qwen2.5-VL-7B-Instruct
+  - InternVL3-8B
 - **Quantization support** via bitsandbytes and triton
 
 ## Environment Setup
 
-### Option 1: Virtual Environment (Recommended)
+### Option 1: Qwen2.5-VL Environment 
 ```bash
 python3 -m venv qwen_env
 source qwen_env/bin/activate  # On Windows: qwen_env\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements_qwenvl.txt
 ```
 
-### Option 2: Conda Environment
+### Option 2: InternVL Environment
+```bash
+python3 -m venv internvl_env
+source internvl_env/bin/activate  # On Windows: internvl_env\Scripts\activate
+pip install -r requirements_internvl.txt
+```
+
+### Option 3: Conda Environment
 ```bash
 conda create -n multimodal-sarcasm python=3.10
 conda activate multimodal-sarcasm
-pip install -r requirements.txt
+# Choose one: pip install -r requirements.txt OR pip install -r requirements_internvl.txt
 ```
 
 ## Getting Started
 
 1. Clone this repository
-2. Set up your environment (see Environment Setup above)
+2. Set up your environment for your chosen VL model (see Environment Setup above)
 3. Download the MMSD2.0 dataset from the official repository
 4. Organize the dataset according to the structure described in Dataset Setup
 5. Update dataset paths in the scripts to match your local setup
-6. Run the desired experiments
+6. Run the desired experiments following the pipeline below
 
-### Example Usage
+## Usage Pipeline
 
-**Image Description Generation:**
+### Step 1: Image Description Generation
+
+**Option A: Using Qwen2.5-VL**
 ```bash
 # For training data
 python image_description_scripts/qwen_vl_image_description.py
@@ -97,25 +112,63 @@ python image_description_scripts/qwen_vl_image_description.py
 # For validation/test data, modify the script to use valid.json or test.json
 ```
 
-**Text Classification:**
+**Option B: Using InternVL3**
 ```bash
-python text_classification/text_classification.py
+# For training and validation data
+python image_description_scripts/intern_vl_image_description.py
+
+# Note: This script processes both train and val splits automatically
 ```
+
+### Step 2: Text Combination (Multimodal Input Creation)
+```bash
+# Combine original text with generated image descriptions
+python image_description_scripts/combine_texts.py \
+    --input mmsd_image_descriptions_train.csv \
+    --output mmsd_combined_train.csv
+```
+
 
 ## Script Adaptability
 
-The image description generation script (`qwen_vl_image_description.py`) is designed for the training split by default. To process validation or test data:
+### Image Description Generation
+The repository includes two different VL models for image description generation:
 
-1. Change `train_file = os.path.join(dataset_path, "train.json")` to:
-   - `valid_file = os.path.join(dataset_path, "valid.json")` for validation data
-   - `test_file = os.path.join(dataset_path, "test.json")` for test data
+**Qwen2.5-VL (`qwen_vl_image_description.py`)**:
+- Uses Qwen2.5-VL-7B-Instruct model
+- Supports 4-bit quantization for memory efficiency
+- Designed for MMSD2.0 dataset with train/valid/test split flexibility
+- Generates detailed descriptions up to 250 tokens
+- Requires larger GPU memory but provides high-quality descriptions
 
-2. Update the corresponding DataFrame loading and output file names accordingly
+**InternVL3 (`intern_vl_image_description.py`)**:
+- Uses InternVL3-8B model with LMDeploy backend
+- Optimized for inference speed and efficiency
+- Processes train and validation splits automatically
+- Designed for MUSE dataset format but adaptable
+- More memory-efficient deployment
 
-## Citation
+Both scripts generate CSV outputs with the same structure for consistency in downstream tasks.
 
+### Text Combination
+The `combine_texts.py` script takes any CSV file with `text` and `image_description` columns and creates a `combined_text` column for multimodal classification.
 
-```
+## Sample Data
+
+This repository includes a sample dataset (`sample_data.csv`) with 50 examples from the processed training data. The sample demonstrates the data structure after image description generation:
+
+| Column | Description |
+|--------|-------------|
+| `image_id` | Unique identifier for the image (e.g., "840006160660983809.jpg") |
+| `text` | Original social media post text |
+| `label` | Sarcasm label (0: non-sarcastic, 1: sarcastic) |
+| `image_description` | Generated description using Qwen2.5-VL model |
+| `image_location` | Path where the image was found during processing |
+| `combined_text` | Concatenation of original text and image description |
+
+**Note:** The sample data is provided for format reference and testing purposes. For full experiments, process the complete MMSD2.0 dataset using the provided scripts.
+
+## Citations
 
 ## License
 
@@ -124,4 +177,4 @@ This project is for research purposes. Please refer to the MMSD2.0 dataset licen
 ## Acknowledgments
 
 - Original MMSD2.0 dataset creators and contributors
-- The open-source community for providing the foundational models and libraries used in this project 
+- The open-source community for providing the foundational models and libraries used in this project
