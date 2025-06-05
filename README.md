@@ -237,6 +237,55 @@ We conducted a series of experiments using different configurations (learning ra
 
 *Note: The best performing configuration is highlighted in bold.*
 
+### Additional Experimental Results
+
+We also conducted experiments with different data configurations to analyze the contribution of different modalities:
+
+### Table: QwenVL + roberta base (only test set) results
+
+This table shows the performance of the QwenVL + Roberta Base model when trained and evaluated on the **test set only**, using combined text and image descriptions.
+
+| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
+|-----------------|-------|----------|-----------|--------|
+| (5e-05, 4)      | 73.40 | 75.10    | 74.85     | 75.10  |
+| (2e-05, 4)      | **77.71** | 78.42    | 78.60     | 78.42  |
+| (5e-05, 8)      | 76.93 | 78.01    | 77.87     | 78.01  |
+| (2e-05, 8)      | 73.02 | 74.69    | 74.42     | 74.69  |
+| (5e-05, 16)     | 74.51 | 75.93    | 75.71     | 75.93  |
+| (2e-05, 16)     | 74.12 | 75.52    | 75.29     | 75.52  |
+
+---
+
+### Table: QwenVL + roberta base (only text) results
+
+This table presents the results of the QwenVL + Roberta Base model trained and evaluated using **only the textual content** from the dataset.
+
+| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
+|-----------------|-------|----------|-----------|--------|
+| (5e-05, 4)      | 66.37 | 66.67    | 67.21     | 66.67  |
+| (2e-05, 4)      | **76.01** | 76.38    | 76.51     | 76.38  |
+| (5e-05, 8)      | 36.29 | 56.95    | 56.95     | 56.95  |
+| (2e-05, 8)      | 74.18 | 74.97    | 74.84     | 74.97  |
+| (5e-05, 16)     | 75.77 | 76.25    | 76.30     | 76.30  |
+| (2e-05, 16)     | 75.93 | 76.09    | 76.81     | 76.09  |
+
+---
+
+### Table: QwenVL + roberta base (only image description) results
+
+This table details the performance of the QwenVL + Roberta Base model when trained and evaluated using **only the generated image descriptions** as input.
+
+| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
+|-----------------|-------|----------|-----------|--------|
+| (5e-05, 4)      | 36.29 | 56.95    | 32.44     | 56.95  |
+| (2e-05, 4)      | **73.88** | 74.51    | 74.42     | 74.51  |
+| (5e-05, 8)      | 68.35 | 68.87    | 68.98     | 68.87  |
+| (2e-05, 8)      | 73.65 | 74.35    | 74.23     | 74.35  |
+| (5e-05, 16)     | 74.53 | 74.48    | 74.51     | 74.48  |
+| (2e-05, 16)     | 74.53 | 75.18    | 75.08     | 75.18  |
+
+*Note: The best performing configuration for each experimental setup is highlighted in bold.*
+
 ## License
 
 This project is for research purposes. Please refer to the MMSD2.0 dataset license for data usage terms.
