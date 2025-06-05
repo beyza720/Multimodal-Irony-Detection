@@ -128,6 +128,36 @@ python image_description_scripts/combine_texts.py \
     --output mmsd_combined_train.csv
 ```
 
+### Step 3: Text Classification Training
+
+**For QwenVL + RoBERTa experiments:**
+```bash
+# Run all configurations with QwenVL-generated descriptions
+cd text_classification
+./run_experiments_robertabase.sh
+```
+
+**For InternVL + RoBERTa experiments:**
+Before running the script, you need to modify the data paths in `run_experiments_robertabase.sh`:
+
+```bash
+# Change these lines in run_experiments_robertabase.sh:
+--train_file "${WORKSPACE_DIR}/mmsd_image_description_with_QwenVL/mmsd_image_descriptions_train.csv" \
+--valid_file "${WORKSPACE_DIR}/mmsd_image_description_with_QwenVL/mmsd_image_descriptions_valid.csv" \
+--test_file "${WORKSPACE_DIR}/mmsd_image_description_with_QwenVL/mmsd_image_descriptions_test.csv" \
+
+# To:
+--train_file "${WORKSPACE_DIR}/mmsd_image_description_with_InternVL/mmsd_image_descriptions_train.csv" \
+--valid_file "${WORKSPACE_DIR}/mmsd_image_description_with_InternVL/mmsd_image_descriptions_valid.csv" \
+--test_file "${WORKSPACE_DIR}/mmsd_image_description_with_InternVL/mmsd_image_descriptions_test.csv" \
+```
+
+Then run:
+```bash
+cd text_classification
+./run_experiments_robertabase.sh
+```
+
 
 ## Script Adaptability
 
