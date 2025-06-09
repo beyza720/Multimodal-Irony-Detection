@@ -16,10 +16,17 @@ Sarcasm detection is a challenging natural language processing task that becomes
 
 ## Dataset
 
-This project uses the **MMSD2.0 (Multimodal Sarcasm Detection Dataset 2.0)**, which is a comprehensive dataset containing social media posts with both text and images, labeled for sarcasm detection.
+This project uses multiple datasets for multimodal sarcasm detection and analysis:
 
-### Dataset Source
-The MMSD2.0 dataset is available at: [https://github.com/JoeYing1019/MMSD2.0](https://github.com/JoeYing1019/MMSD2.0)
+### Primary Dataset: MMSD2.0
+The **MMSD2.0 (Multimodal Sarcasm Detection Dataset 2.0)** is a comprehensive dataset containing social media posts with both text and images, labeled for sarcasm detection.
+
+**Dataset Source**: [https://github.com/JoeYing1019/MMSD2.0](https://github.com/JoeYing1019/MMSD2.0)
+
+### Additional Dataset: MuSE
+The **MuSE (Multimodal Sarcasm Explanation)** dataset, introduced in the AAAI-22 paper "Nice perfume. How long did you marinate in it? Multimodal Sarcasm Explanation", contains 3,510 sarcastic multimodal posts with natural language explanations. For our experiments, we utilize only the text and image components from this dataset, applying preprocessing steps similar to MMSD2.0 (emoji removal and hashtag cleaning) to ensure consistency.
+
+**Dataset Source**: [https://github.com/LCS2-IIITD/Multimodal-Sarcasm-Explanation-MuSE](https://github.com/LCS2-IIITD/Multimodal-Sarcasm-Explanation-MuSE)
 
 **Note**: Due to copyright and ethical considerations, the original images and texts from the dataset are not included in this repository. Please refer to the official MMSD2.0 repository linked above to access the complete dataset.
 
@@ -209,7 +216,27 @@ Both sample files use the same image IDs, allowing for direct comparison of how 
 
 ## Results
 
-We conducted a series of experiments using different configurations (learning rate and batch size) for our QwenVL + Roberta Base model. The results for the sarcasm detection task are summarized below:
+We conducted a series of experiments using different configurations (learning rate and batch size) for various models. The results for the sarcasm detection task are summarized below:
+
+### Table: Best performing configuration per setting (no config details)
+
+This table summarizes the best performance achieved for each input modality and model combination, providing a concise overview of the highest metrics across all configurations.
+
+| Input             | Model             | Acc   | F1    | Prec  | Recall |
+|-------------------|-------------------|-------|-------|-------|--------|
+| text-only         | Qwen + Roberta    | 78.42 | 77.71 | 78.60 | 78.42  |
+| text-only         | Qwen + ModernBERT | **84.72** | **84.59** | **85.21** | **84.72** |
+| text-only         | InternVL + Roberta| 78.08 | 77.86 | 78.48 | 78.08  |
+| text+image        | Qwen + Roberta    | 74.51 | 73.88 | 74.42 | 74.51  |
+| text+image        | InternVL + Roberta| 76.26 | 75.93 | 76.47 | 76.26  |
+| combined          | Qwen + Roberta    | 82.07 | 81.88 | 82.42 | 82.07  |
+| combined          | Qwen + ModernBERT | 82.61 | 82.36 | 82.67 | 82.61  |
+| combined          | InternVL + Roberta| 81.82 | 81.62 | 82.14 | 81.82  |
+| Baseline          | MMSD2.0           | 85.64 | 84.10 | 80.33 | 88.24  |
+
+*Note: The best performing configuration across all settings is highlighted in bold.*
+
+### All Experimental Results
 
 ### Table: QwenVL + roberta base (all dataset) results
 
@@ -236,8 +263,6 @@ We conducted a series of experiments using different configurations (learning ra
 | (2e-05, 16)     | 79.31 | 79.87    | 79.80     | 79.87  |
 
 *Note: The best performing configuration is highlighted in bold.*
-
-### Additional Experimental Results
 
 We also conducted experiments with different data configurations to analyze the contribution of different modalities:
 
@@ -328,6 +353,23 @@ This table presents the performance of the QwenVL + Roberta Large model when usi
 | (2e-05, 8)      | 82.36 | 82.57    | 82.86     | 82.57  |
 | (5e-05, 16)     | 65.17 | 68.04    | 68.36     | 68.04  |
 | (2e-05, 16)     | 81.99 | 82.19    | 82.48     | 82.19  |
+
+---
+
+### Table: QwenVL + ModernBERT-large results
+
+This table displays the performance metrics for the ModernBERT-large model.
+
+| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
+|-----------------|-------|----------|-----------|--------|
+| (1e-05, 8)      | 0.8387 | 0.8402   | 0.8446    | 0.8402 |
+| (2e-05, 8)      | **0.8459** | **0.8472** | **0.8521** | **0.8472** |
+| (5e-05, 8)      | 0.8158 | 0.8174   | 0.8225    | 0.8174 |
+| (1e-05, 16)     | 0.8285 | 0.8294   | 0.8381    | 0.8294 |
+| (2e-05, 16)     | 0.8310 | 0.8319   | 0.8406    | 0.8319 |
+| (5e-05, 16)     | 0.8114 | 0.8120   | 0.8255    | 0.8120 |
+
+*Note: ModernBERT-large experiments were conducted by a collaborating research team. The implementation scripts for this model are not included in this repository.*
 
 *Note: The best performing configuration for each experimental setup is highlighted in bold.*
 
