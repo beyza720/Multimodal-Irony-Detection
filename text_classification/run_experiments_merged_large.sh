@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Get the directory where the script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 WORKSPACE_DIR="$( cd "$SCRIPT_DIR/.." && pwd )"
 
@@ -16,18 +15,7 @@ get_gpu_id() {
     echo $((config_index % 4))
 }
 
-echo "🚀 Starting merged dataset experiments with XLM-RoBERTa Large..."
-echo "📊 Dataset info:"
-echo "   Train: $(wc -l < "${WORKSPACE_DIR}/merged_datasets/merged_train.csv") samples"
-echo "   Valid: $(wc -l < "${WORKSPACE_DIR}/merged_datasets/merged_valid.csv") samples"
-echo "   Test:  $(wc -l < "${WORKSPACE_DIR}/merged_datasets/merged_test.csv") samples"
-echo ""
-echo "🔧 Large Model Optimizations:"
-echo "   • Reduced epochs: $EPOCHS (vs 5 for base model)"
-echo "   • Smaller batch sizes: 2-4 (vs 4-16 for base model)"
-echo "   • Memory-efficient settings enabled"
-echo "   • Text truncation: 400 characters"
-echo ""
+echo "Starting merged dataset experiments with XLM-RoBERTa Large..."
 
 for i in $(seq 0 $((NUM_CONFIGS-1))); do
     RUN_NAME="merged_large_config_${i}"
@@ -37,17 +25,7 @@ for i in $(seq 0 $((NUM_CONFIGS-1))); do
     
     GPU_ID=$(get_gpu_id $i)
     
-    echo "▶️  Starting Large model config $i on GPU $GPU_ID"
-    
-    # Show config details
-    case $i in
-        0) echo "     Config: batch_size=2, lr=5e-5" ;;
-        1) echo "     Config: batch_size=2, lr=2e-5" ;;
-        2) echo "     Config: batch_size=2, lr=1e-4" ;;
-        3) echo "     Config: batch_size=4, lr=5e-5" ;;
-        4) echo "     Config: batch_size=4, lr=2e-5" ;;
-        5) echo "     Config: batch_size=4, lr=1e-4" ;;
-    esac
+    echo "Starting config $i on GPU $GPU_ID"
     
     nohup python3 "${SCRIPT_DIR}/text_classification_merged_large.py" \
         --model_id $MODEL_ID \
@@ -61,20 +39,8 @@ for i in $(seq 0 $((NUM_CONFIGS-1))); do
         --test_file "${WORKSPACE_DIR}/merged_datasets/merged_test.csv" \
         > "${RUN_DIR}/nohup.out" 2>&1 &
     
-    echo "   ✓ Process started, logs: ${RUN_DIR}/nohup.out"
-    sleep 45  # Longer wait for large model initialization
+
+    sleep 45  
 done
 
-echo ""
-echo "🎉 All $NUM_CONFIGS Large model experiments started!"
-echo "📁 Results will be saved in: $OUTPUT_DIR/"
-echo "📊 Monitor progress with:"
-echo "   tail -f $OUTPUT_DIR/*/nohup.out"
-echo ""
-echo "⏱️  Estimated completion time: ~4-6 hours (Large model takes longer)" 
-echo "💾 Memory usage will be higher - monitor with: nvidia-smi"
-echo ""
-echo "🔍 Key differences from base model:"
-echo "   • Using XLM-RoBERTa Large (355M parameters vs 270M)"
-echo "   • Optimized for memory efficiency"
-echo "   • Better performance expected with longer training time" 
+echo "All experiments started! Results in: $OUTPUT_DIR/" 

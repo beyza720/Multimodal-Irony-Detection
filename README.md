@@ -250,20 +250,22 @@ This table summarizes the best performance achieved for each input modality and 
 | Input             | Model             | Acc   | F1    | Prec  | Recall |
 |-------------------|-------------------|-------|-------|-------|--------|
 | text-only         | Qwen + Roberta    | 78.42 | 77.71 | 78.60 | 78.42  |
-| text-only         | Qwen + ModernBERT | **84.72** | **84.59** | **85.21** | **84.72** |
 | text-only         | InternVL + Roberta| 78.08 | 77.86 | 78.48 | 78.08  |
-| text+image        | Qwen + Roberta    | 74.51 | 73.88 | 74.42 | 74.51  |
-| text+image        | InternVL + Roberta| 76.26 | 75.93 | 76.47 | 76.26  |
+| image-only        | Qwen + Roberta    | 74.51 | 73.88 | 74.42 | 74.51  |
+| image-only        | InternVL + Roberta| 76.26 | 75.93 | 76.47 | 76.26  |
 | combined          | Qwen + Roberta    | 82.07 | 81.88 | 82.42 | 82.07  |
 | combined          | Qwen + ModernBERT | 82.61 | 82.36 | 82.67 | 82.61  |
 | combined          | InternVL + Roberta| 81.82 | 81.62 | 82.14 | 81.82  |
+| combined*         | Qwen + Roberta    | 84.64 | 84.61 | 84.90 | 84.64  |
+| combined          | Qwen + ModernBERT | **84.72** | **84.59** | **85.21** | **84.72** |
 | Baseline          | MMSD2.0           | 85.64 | 84.10 | 80.33 | 88.24  |
 
 *Note: The best performing configuration across all settings is highlighted in bold.*
+*Note: Results marked with * indicate experiments conducted on a merged version with cleaned (deleted emojis and spurious hashtags) More Dataset.*
 
 ### All Experimental Results
 
-### Table: QwenVL + roberta base (all dataset) results
+### Table: QwenVL + roberta base results
 
 | Config (lr, bs) | F1    | Accuracy | Precision | Recall |
 |-----------------|-------|----------|-----------|--------|
@@ -387,22 +389,49 @@ This table displays the performance metrics for the ModernBERT-large model.
 
 | Config (lr, bs) | F1    | Accuracy | Precision | Recall |
 |-----------------|-------|----------|-----------|--------|
-| (1e-05, 8)      | 0.8387 | 0.8402   | 0.8446    | 0.8402 |
-| (2e-05, 8)      | **0.8459** | **0.8472** | **0.8521** | **0.8472** |
-| (5e-05, 8)      | 0.8158 | 0.8174   | 0.8225    | 0.8174 |
-| (1e-05, 16)     | 0.8285 | 0.8294   | 0.8381    | 0.8294 |
-| (2e-05, 16)     | 0.8310 | 0.8319   | 0.8406    | 0.8319 |
-| (5e-05, 16)     | 0.8114 | 0.8120   | 0.8255    | 0.8120 |
+| (1e-05, 8)      | 83.87 | 84.02    | 84.46     | 84.02  |
+| (2e-05, 8)      | **84.59** | **84.72** | **85.21** | **84.72** |
+| (5e-05, 8)      | 81.58 | 81.74    | 82.25     | 81.74  |
+| (1e-05, 16)     | 82.85 | 82.94    | 83.81     | 82.94  |
+| (2e-05, 16)     | 83.10 | 83.19    | 84.06     | 83.19  |
+| (5e-05, 16)     | 81.14 | 81.20    | 82.55     | 81.20  |
+
 
 *Note: ModernBERT-large experiments were conducted by a collaborating research team. The implementation scripts for this model are not included in this repository.*
+
+---
+
+### Table: QwenVL + roberta base (MMSD2.0 + MORE cleaned) results
+
+This table presents the performance of the QwenVL + Roberta Base model on a merged version with cleaned (deleted emojis and spurious hashtags) More Dataset.
+
+| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
+|-----------------|-------|----------|-----------|--------|
+| (2e-05, 4)      | 84.18 | 84.21    | 84.38     | 84.21  |
+| (5e-05, 4)      | 64.79 | 65.70    | 67.30     | 65.70  |
+| (2e-05, 8)      | **84.61** | **84.64** | **84.90** | **84.64** |
+| (5e-05, 8)      | 33.47 | 50.31    | 25.31     | 50.31  |
+| (2e-05, 16)     | 84.39 | 84.43    | 84.62     | 84.43  |
+| (5e-05, 16)     | 84.29 | 84.32    | 84.50     | 84.32  |
+
+*Note: The best performing configuration for each experimental setup is highlighted in bold.*
+
+### Table: XLM-Roberta-Large + Merged (Cleaned) results
+
+This table presents the performance of the XLM-Roberta-Large model on a merged version with cleaned (deleted emojis and spurious hashtags) MORE Dataset.
+
+| Config (lr, bs) | F1     | Accuracy | Precision | Recall |
+|-----------------|--------|----------|-----------|--------|
+| (2e-05, 2)      | 84.83  | 84.86    | 85.05     | 84.86  |
+| (5e-05, 2)      | 33.47  | 50.31    | 25.31     | 50.31  |
+| (1e-04, 2)      | 33.47  | 50.31    | 25.31     | 50.31  |
+| (2e-05, 4)      | 85.23  | 85.26    | 85.44     | 85.26  |
+| (5e-05, 4)      | 33.47  | 50.31    | 25.31     | 50.31  |
+| (1e-04, 4)      | 33.47  | 50.31    | 25.31     | 50.31  |
+| (2e-05, 8)      | **85.33** | **85.37** | **85.64** | **85.37** |
 
 *Note: The best performing configuration for each experimental setup is highlighted in bold.*
 
 ## License
 
-This project is for research purposes. Please refer to the MMSD2.0 dataset license for data usage terms.
-
 ## Acknowledgments
-
-- Original MMSD2.0 dataset creators and contributors
-- The open-source community for providing the foundational models and libraries used in this project
