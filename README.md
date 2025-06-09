@@ -165,6 +165,22 @@ cd text_classification
 ./run_experiments_robertabase.sh
 ```
 
+### Step 4: Merged Dataset Experiments (Optional)
+
+**Combining MuSE and MMSD Datasets:**
+We also conduct experiments by merging the processed MuSE and MMSD2.0 datasets to evaluate performance on a larger, more diverse dataset. This experiment helps analyze whether combining multiple sarcasm datasets improves model robustness and generalization.
+
+```bash
+# For merged dataset experiments
+cd text_classification
+./run_experiments_merged.sh
+```
+
+**Note**: Before running merged experiments, ensure you have both processed datasets:
+- MMSD2.0 with image descriptions (from Steps 1-2)
+- MuSE with image descriptions (using `muse_image_description_batch.py`)
+- Properly cleaned and merged using dataset preparation scripts
+
 
 ## Script Adaptability
 
@@ -189,6 +205,14 @@ Both scripts generate CSV outputs with the same structure for consistency in dow
 
 ### Text Combination
 The `combine_texts.py` script takes any CSV file with `text` and `image_description` columns and creates a `combined_text` column for multimodal classification.
+
+### Merged Dataset Support
+**`text_classification_merged.py` and `run_experiments_merged.sh`**:
+- Supports combined MuSE + MMSD2.0 datasets for training
+- Automatically handles different dataset formats and column structures
+- Provides detailed logging of dataset composition (MUSE vs MMSD samples)
+- Uses the same configuration space as individual dataset experiments for fair comparison
+- Enables analysis of cross-dataset generalization and improved robustness
 
 ## Sample Data
 
