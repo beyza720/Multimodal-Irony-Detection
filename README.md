@@ -254,10 +254,11 @@ This table summarizes the best performance achieved for each input modality and 
 | image-only        | Qwen + Roberta    | 74.51 | 73.88 | 74.42 | 74.51  |
 | image-only        | InternVL + Roberta| 76.26 | 75.93 | 76.47 | 76.26  |
 | combined          | Qwen + Roberta    | 82.07 | 81.88 | 82.42 | 82.07  |
-| combined          | Qwen + ModernBERT | 82.61 | 82.36 | 82.67 | 82.61  |
+| combined          | Qwen + RobertaLarge | 82.61 | 82.36 | 82.67 | 82.61  |
 | combined          | InternVL + Roberta| 81.82 | 81.62 | 82.14 | 81.82  |
 | combined*         | Qwen + Roberta    | 84.64 | 84.61 | 84.90 | 84.64  |
-| combined          | Qwen + ModernBERT | **84.72** | **84.59** | **85.21** | **84.72** |
+| combined*         | Qwen + RobertaLarge | **85.37** | **85.33** | **85.64**  | **85.37** |
+| combined          | Qwen + ModernBERT | 84.72 | 84.59 | 85.21 | 84.72 |
 | Baseline          | MMSD2.0           | 85.64 | 84.10 | 80.33 | 88.24  |
 
 *Note: The best performing configuration across all settings is highlighted in bold.*
