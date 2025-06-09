@@ -195,10 +195,11 @@ The `combine_texts.py` script takes any CSV file with `text` and `image_descript
 This repository includes sample datasets with 50 examples from the processed training data, demonstrating the data structure after image description generation with different vision-language models:
 
 ### Sample Files
-- **`sample_data_qwenvl.csv`**: Sample data with image descriptions generated using Qwen2.5-VL model
-- **`sample_data_internvl.csv`**: Sample data with image descriptions generated using InternVL3 model
+- **`mmsd_sample_data_qwenvl.csv`**: Sample data with image descriptions generated using Qwen2.5-VL model (MMSD2.0 dataset, 50 examples)
+- **`mmsd_sample_data_internvl.csv`**: Sample data with image descriptions generated using InternVL3 model (MMSD2.0 dataset, 50 examples)
+- **`muse_sample_data_qwenvl.csv`**: Sample data with image descriptions generated using Qwen2.5-VL model (MuSE dataset, 36 examples)
 
-Both sample files use the same image IDs, allowing for direct comparison of how different vision-language models describe the same images.
+Both MMSD2.0 sample files use the same image IDs, allowing for direct comparison of how different vision-language models describe the same images. The MuSE sample demonstrates the data structure for the additional dataset used in our experiments.
 
 ### Data Structure
 | Column | Description |
