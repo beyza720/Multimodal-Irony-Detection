@@ -1,438 +1,359 @@
-# Multimodal Sarcasm Detection Project
+# Lightweight Multimodal Irony Detection by Image Caption Generation
 
-## Overview
+Code for **"Lightweight Approach for Multi-Modal Irony Detection by Image Caption Generation"**, presented at **IEEE BigData 2025**.
 
-This project focuses on multimodal sarcasm detection using the MMSD2.0 dataset. The goal is to develop and compare various machine learning models that can identify sarcasm in social media content by analyzing both textual and visual information simultaneously.
+Beyza Nur Koç, Recep Fırat Çekinel, Pınar Karagöz — Department of Computer Engineering, Middle East Technical University.
 
-## Project Description
+📄 [Paper (PDF)](Lightweight%20Approach%20for%20Multi-Modal%20Irony%20Detection%20by%20Image%20Caption%20Generation.pdf) · 🔗 [DOI](ADD_DOI_LINK_HERE)
 
-Sarcasm detection is a challenging natural language processing task that becomes even more complex in multimodal settings where text is accompanied by images. This project explores different approaches to tackle this problem, including:
+---
 
-- **Text-only classification models** using transformer-based architectures
-- **Image description generation** using vision-language models
-- **Multimodal approaches** combining textual and visual features
-- **Zero-shot classification** experiments
-- **Fine-tuning experiments** with various pre-trained models
+## What this does
 
-## Dataset
+Multimodal irony detection usually requires end-to-end training over both a vision encoder and a text encoder. We avoid that entirely.
 
-This project uses multiple datasets for multimodal sarcasm detection and analysis:
+Instead, we **turn the image into text and then classify text**:
 
-### Primary Dataset: MMSD2.0
-The **MMSD2.0 (Multimodal Sarcasm Detection Dataset 2.0)** is a comprehensive dataset containing social media posts with both text and images, labeled for sarcasm detection.
+1. A vision–language model (Qwen2.5-VL-7B or InternVL3-8B) generates a caption for the image. **No fine-tuning** — inference only.
+2. The caption is concatenated with the original post text.
+3. A transformer text classifier (XLM-RoBERTa or ModernBERT) is fine-tuned on the combined text.
 
-**Dataset Source**: [https://github.com/JoeYing1019/MMSD2.0](https://github.com/JoeYing1019/MMSD2.0)
+The multimodal problem becomes a text classification problem, so only the text encoder is ever trained.
 
-### Additional Dataset: MuSE
-The **MuSE (Multimodal Sarcasm Explanation)** dataset, introduced in the AAAI-22 paper "Nice perfume. How long did you marinate in it? Multimodal Sarcasm Explanation", contains 3,510 sarcastic multimodal posts with natural language explanations. For our experiments, we utilize only the text and image components from this dataset, applying preprocessing steps similar to MMSD2.0 (emoji removal and hashtag cleaning) to ensure consistency.
+**Result:** this matches Multi-view CLIP on MMSD2.0 (84.59 vs. 84.64 macro-F1) and outperforms it on the augmented MMSD2.0+MORE benchmark (85.95 vs. 84.81 macro-F1) — without any joint visual–textual training.
 
-**Dataset Source**: [https://github.com/LCS2-IIITD/Multimodal-Sarcasm-Explanation-MuSE](https://github.com/LCS2-IIITD/Multimodal-Sarcasm-Explanation-MuSE)
+![Pipeline overview](docs/pipeline.png)
 
-**Note**: Due to copyright and ethical considerations, the original images and texts from the dataset are not included in this repository. Please refer to the official MMSD2.0 repository linked above to access the complete dataset.
+---
 
-### Dataset Setup
+## Results
 
-After downloading the MMSD2.0 dataset, organize it as follows:
+All numbers are from the published paper. Macro-F1 is the primary metric; all evaluation is on the MMSD2.0 test set unless stated otherwise.
+
+### Main comparison on MMSD2.0
+
+| Model | Input | Image encoder | Text encoder | Setup | Acc | **F1** | Prec | Rec |
+|---|---|---|---|---|---|---|---|---|
+| Zero-shot-1 | image + text (vanilla prompt) | Dynamic ViT | Qwen2.5 LLM | Zero-shot | 69.12 | 67.73 | 66.78 | 56.22 |
+| Zero-shot-2 | image + text (detailed prompt) | Dynamic ViT | Qwen2.5 LLM | Zero-shot | 61.15 | 60.99 | 78.40 | 53.31 |
+| Zero-shot-3 | image caption + text | – | Mistral-7B | Zero-shot | 67.04 | 61.05 | 71.52 | 63.17 |
+| Zero-shot-4 | text only | – | Mistral-7B | Zero-shot | 64.80 | 64.45 | 64.45 | 64.68 |
+| Zero-shot-5 | image caption only | – | Mistral-7B | Zero-shot | 64.51 | 55.87 | 71.02 | 59.51 |
+| Baseline-text | text only | Qwen2.5-VL-7B | xlm-roberta-base | Fine-tuned | 78.79 | 78.58 | 79.21 | 78.79 |
+| Baseline-text | text only | InternVL3-8B | xlm-roberta-base | Fine-tuned | 78.33 | 78.15 | 78.87 | 78.33 |
+| Baseline-caption | image caption only | Qwen2.5-VL-7B | xlm-roberta-base | Fine-tuned | 74.55 | 74.19 | 74.74 | 74.55 |
+| Baseline-caption | image caption only | InternVL3-8B | xlm-roberta-base | Fine-tuned | 75.34 | 75.02 | 75.59 | 75.34 |
+| Multi-view CLIP | image + text | clip-vit-base | CLIP Transformer | Fine-tuned | 84.81 | **84.64** | 84.49 | 86.42 |
+| **Ours** | image caption + text | Qwen2.5-VL-7B | ModernBERT-large | Fine-tuned | 84.72 | **84.59** | 85.21 | 84.72 |
+
+Adding captions to the text lifts macro-F1 from 78.58 to 84.59 — visual information carries complementary signal that text alone misses.
+
+### Data augmentation: MMSD2.0 + cleaned MORE
+
+Multi-view CLIP was re-implemented and retrained on the identical merged splits for a fair comparison.
+
+| Model | Input | Image encoder | Text classifier | Acc | **F1** | Prec | Rec |
+|---|---|---|---|---|---|---|---|
+| Multi-view CLIP | image + text | clip-vit-base | CLIP Transformer | 84.97 | 84.81 | 84.66 | 86.60 |
+| Ours | image caption + text | Qwen2.5-VL-7B | xlm-roberta-large | 84.28 | 84.27 | 84.34 | 84.28 |
+| **Ours** | image caption + text | Qwen2.5-VL-7B | ModernBERT-large | **85.98** | **85.95** | **86.27** | **85.98** |
+
+Adding ~3.5k posts from MORE gains +1.14 F1 and cuts sarcastic false negatives by roughly 20%, overtaking Multi-view CLIP on the same data.
+
+### Text classifier comparison
+
+| Input | Image encoder | Text classifier | Acc | **F1** | Prec | Rec |
+|---|---|---|---|---|---|---|
+| image caption + text | Qwen2.5-VL-7B | xlm-roberta-base | 82.27 | 82.00 | 82.39 | 82.27 |
+| image caption + text | InternVL3-8B | xlm-roberta-base | 82.57 | 82.42 | 83.10 | 82.57 |
+| image caption + text | Qwen2.5-VL-7B | xlm-roberta-large | 83.48 | 83.35 | 84.04 | 83.48 |
+| image caption + text | Qwen2.5-VL-7B | ModernBERT-large | **84.72** | **84.59** | 85.21 | 84.72 |
+
+InternVL3 produces better captions in the caption-only setting, but once modalities are concatenated the two VLMs are effectively equivalent — the fusion step neutralises caption quality differences. Qwen2.5-VL-7B was therefore used for all classifier comparisons.
+
+<details>
+<summary><b>Hyperparameter sweeps (click to expand)</b></summary>
+
+Search space: learning rate ∈ {1e-5, 2e-5, 5e-5}, batch size ∈ {4, 8, 16}. Best configuration selected by validation macro-F1.
+
+**Qwen2.5-VL-7B + xlm-roberta-base, text only**
+
+| Config (lr, bs) | F1 | Acc | Prec | Rec |
+|---|---|---|---|---|
+| (5e-05, 4) | 66.37 | 66.67 | 67.21 | 66.67 |
+| (2e-05, 4) | **78.58** | **78.79** | **79.21** | **78.79** |
+| (5e-05, 8) | 76.58 | 76.67 | 77.79 | 76.67 |
+| (2e-05, 8) | 77.41 | 77.63 | 78.07 | 77.63 |
+| (5e-05, 16) | 77.42 | 77.54 | 78.40 | 77.54 |
+| (2e-05, 16) | 78.09 | 78.25 | 78.90 | 78.25 |
+
+**Qwen2.5-VL-7B + xlm-roberta-base, image caption only**
+
+| Config (lr, bs) | F1 | Acc | Prec | Rec |
+|---|---|---|---|---|
+| (5e-05, 4) | 68.03 | 68.83 | 68.69 | 68.83 |
+| (2e-05, 4) | 73.60 | 73.97 | 74.15 | 73.97 |
+| (5e-05, 8) | 36.29 | 56.95 | 32.44 | 56.95 |
+| (2e-05, 8) | 72.82 | 73.18 | 73.41 | 73.18 |
+| (5e-05, 16) | 74.03 | 74.39 | 74.59 | 74.39 |
+| (2e-05, 16) | **74.19** | **74.55** | **74.74** | **74.55** |
+
+**InternVL3-8B + xlm-roberta-base, text only**
+
+| Config (lr, bs) | F1 | Acc | Prec | Rec |
+|---|---|---|---|---|
+| (5e-05, 4) | 36.29 | 56.95 | 32.44 | 56.95 |
+| (2e-05, 4) | 69.29 | 69.49 | 70.24 | 69.49 |
+| (5e-05, 8) | 65.28 | 65.34 | 66.89 | 65.34 |
+| (2e-05, 8) | 77.45 | 77.67 | 78.12 | 77.67 |
+| (5e-05, 16) | **78.15** | **78.33** | **78.87** | **78.33** |
+| (2e-05, 16) | 77.15 | 77.33 | 77.89 | 77.33 |
+
+**InternVL3-8B + xlm-roberta-base, image caption only**
+
+| Config (lr, bs) | F1 | Acc | Prec | Rec |
+|---|---|---|---|---|
+| (5e-05, 4) | 67.81 | 68.12 | 68.60 | 68.12 |
+| (2e-05, 4) | 73.81 | 74.01 | 74.64 | 74.01 |
+| (5e-05, 8) | **75.02** | **75.34** | **75.59** | **75.34** |
+| (2e-05, 8) | 74.02 | 74.30 | 74.68 | 74.30 |
+| (5e-05, 16) | 73.28 | 73.56 | 73.96 | 73.56 |
+| (2e-05, 16) | 74.77 | 75.01 | 75.49 | 75.01 |
+
+**Qwen2.5-VL-7B + ModernBERT-large, text only**
+
+| Config (lr, bs) | F1 | Acc | Prec | Rec |
+|---|---|---|---|---|
+| (1e-05, 8) | 83.87 | 84.02 | 84.46 | 84.02 |
+| (2e-05, 8) | **84.59** | **84.72** | **85.21** | **84.72** |
+| (5e-05, 8) | 81.58 | 81.74 | 82.24 | 81.73 |
+| (1e-05, 16) | 82.84 | 82.94 | 83.81 | 82.94 |
+| (2e-05, 16) | 83.09 | 83.19 | 84.06 | 83.19 |
+| (5e-05, 16) | 81.14 | 81.19 | 82.54 | 81.20 |
+
+**Qwen2.5-VL-7B + xlm-roberta-large, MMSD2.0 + MORE (cleaned)**
+
+| Config (lr, bs) | F1 | Acc | Prec | Rec |
+|---|---|---|---|---|
+| (2e-05, 16) | **84.27** | **84.28** | **84.34** | **84.28** |
+| (1e-05, 8) | 83.85 | 83.85 | 83.85 | 83.85 |
+| (1e-05, 16) | 83.02 | 83.05 | 83.23 | 83.05 |
+
+**Qwen2.5-VL-7B + ModernBERT-large, MMSD2.0 + MORE (cleaned)**
+
+| Config (lr, bs) | F1 | Acc | Prec | Rec |
+|---|---|---|---|---|
+| (1e-05, 16) | 84.56 | 84.57 | 84.69 | 84.57 |
+| (2e-05, 16) | 83.71 | 83.74 | 83.87 | 83.74 |
+| (5e-05, 16) | **85.95** | **85.98** | **86.27** | **85.98** |
+
+</details>
+
+> **Note on ModernBERT.** The ModernBERT-large experiments were run by a collaborating research team, so those training scripts are not part of this repository. Everything else reported above is reproducible from the code here.
+
+---
+
+## Method
+
+### 1. Image caption generation
+
+Each image is converted to a natural-language description by a VLM in **inference mode only** — no fine-tuning. Qwen2.5-VL-7B and InternVL3-8B were selected based on Open VLM Leaderboard results and preliminary caption-quality checks.
+
+Prompt used for both models:
+
+> Please describe this image in detail. Focus on the visual elements, composition, and any notable features. Keep the description under 250 tokens.
+
+### 2. Merging text and image information
+
+The generated caption is concatenated with the original post text into a single string, which becomes the classifier input. This is what reduces the multimodal task to text classification.
+
+### 3. Irony classification
+
+The combined text is tokenized and passed to a fine-tuned transformer classifier (XLM-RoBERTa or ModernBERT) for binary irony detection.
+
+### Training setup
+
+- Up to 5 epochs, AdamW optimizer, cosine learning rate schedule
+- Best checkpoint selected by validation macro-F1
+- Trained on GPUs with ≥ 40 GB memory
+- Reported metrics: accuracy, macro-F1, precision, recall (macro-F1 primary)
+
+---
+
+## Datasets
+
+Neither dataset is redistributed here, for copyright and ethical reasons. Download both from their official sources.
+
+### MMSD2.0 — primary
+
+Multimodal posts from Twitter, Instagram and Tumblr, collected by distant supervision on hashtags such as `#sarcasm` and `#irony`, then manually annotated to remove false positives and balance the classes.
+
+| Split | Posts | Sarcastic | Non-sarcastic |
+|---|---|---|---|
+| Train | 19,816 | 9,572 | 10,240 |
+| Validation | 2,410 | – | – |
+| Test | 2,409 | 1,037 | 1,372 |
+| **Total** | **24,635** | | |
+
+Source: https://github.com/JoeYing1019/MMSD2.0
+
+### MORE — augmentation
+
+Released for multimodal sarcasm *explanation* rather than detection, so **every instance is sarcastic** — there are no negative examples. It contains 3,510 sarcastic posts with expert-written explanations (train 2,983 / validation 175 / test 352).
+
+We adapt it for detection by treating the presence of an explanation as a positive sarcasm label, apply the MMSD2.0 cleaning strategy (emoji removal, spurious hashtag removal), and merge it with MMSD2.0.
+
+Source: https://github.com/LCS2-IIITD/Multimodal-Sarcasm-Explanation-MuSE
+*(The repository is named MuSE; the dataset is referred to as MORE in the paper and throughout this README.)*
+
+### Expected directory layout
 
 ```
 mmsd_dataset/
-├── extracted_part_1/    # Images directory 1
-├── extracted_part_2/    # Images directory 2
-├── extracted_part_3/    # Images directory 3
-├── extracted_part_4/    # Images directory 4
-├── extracted_part_5/    # Images directory 5
-├── extracted_part_6/    # Images directory 6
-├── train.json          # Training split annotations
-├── valid.json          # Validation split annotations
-└── test.json           # Test split annotations
+├── extracted_part_1/    # images, split across 6 directories
+├── extracted_part_2/
+├── extracted_part_3/
+├── extracted_part_4/
+├── extracted_part_5/
+├── extracted_part_6/
+├── train.json           # image ids, text, sarcasm labels (0 / 1)
+├── valid.json
+└── test.json
 ```
 
-**Important Notes:**
-- Images are distributed across 6 separate directories (`extracted_part_1` through `extracted_part_6`)
-- Each JSON file contains image IDs, text content, and sarcasm labels (0: non-sarcastic, 1: sarcastic)
-- Update the `dataset_path` variable in scripts to point to your `mmsd_dataset` directory location
+Point the `dataset_path` variable in the scripts at this directory.
 
-## Key Components
+---
 
-- **Image Description Generation**: Scripts for generating textual descriptions of images using multiple vision-language models
-  - **Qwen2.5-VL**: High-quality descriptions with quantization support
-  - **InternVL3**: Alternative model for comparison and ensemble approaches
-- **Text Combination**: Utilities for combining original text with generated image descriptions
-- **Text Classification**: Implementation of various transformer models for sarcasm detection
-- **Multimodal Analysis**: Experiments combining visual and textual features
-- **Zero-shot Learning**: Testing models' performance without specific training on the target task
+## Setup
 
-## Technology Stack
+Python 3.10+. The two VLMs need different dependency sets, so use separate environments.
 
-- **Python 3.10+**
-- **PyTorch 2.2.2** for deep learning with CUDA support
-- **Transformers 4.51.3+** library for pre-trained models
-- **LMDeploy 0.7.3** for InternVL model deployment
-- **Weights & Biases** for experiment tracking
-- **Multiple vision-language models**:
-  - Qwen2.5-VL-7B-Instruct
-  - InternVL3-8B
-- **Quantization support** via bitsandbytes and triton
+**Qwen2.5-VL**
 
-## Environment Setup
-
-### Option 1: Qwen2.5-VL Environment 
 ```bash
 python3 -m venv qwen_env
-source qwen_env/bin/activate  # On Windows: qwen_env\Scripts\activate
+source qwen_env/bin/activate        # Windows: qwen_env\Scripts\activate
 pip install -r requirements_qwenvl.txt
 ```
 
-### Option 2: InternVL Environment
+**InternVL3**
+
 ```bash
 python3 -m venv internvl_env
-source internvl_env/bin/activate  # On Windows: internvl_env\Scripts\activate
+source internvl_env/bin/activate    # Windows: internvl_env\Scripts\activate
 pip install -r requirements_internvl.txt
 ```
 
-### Option 3: Conda Environment
+Core stack: PyTorch 2.2.2 (CUDA), Transformers 4.51.3+, LMDeploy 0.7.3 (InternVL serving), bitsandbytes + triton (4-bit quantization), Weights & Biases (experiment tracking).
+
+---
+
+## Usage
+
+### Step 1 — Generate image captions
+
 ```bash
-conda create -n multimodal-sarcasm python=3.10
-conda activate multimodal-sarcasm
-# Choose one: pip install -r requirements.txt OR pip install -r requirements_internvl.txt
-```
-
-## Getting Started
-
-1. Clone this repository
-2. Set up your environment for your chosen VL model (see Environment Setup above)
-3. Download the MMSD2.0 dataset from the official repository
-4. Organize the dataset according to the structure described in Dataset Setup
-5. Update dataset paths in the scripts to match your local setup
-6. Run the desired experiments following the pipeline below
-
-## Usage Pipeline
-
-### Step 1: Image Description Generation
-
-**Option A: Using Qwen2.5-VL**
-```bash
-# For training data
+# Qwen2.5-VL-7B-Instruct, 4-bit quantization supported
 python image_description_scripts/qwen_vl_image_description.py
 
-# Note: Script is configured for train.json by default
-# For validation/test data, modify the script to use valid.json or test.json
-```
-
-**Option B: Using InternVL3**
-```bash
-# For training and validation data
+# InternVL3-8B via LMDeploy; processes train and validation splits automatically
 python image_description_scripts/intern_vl_image_description.py
 
-# Note: This script processes both train and val splits automatically
+# MORE dataset
+python image_description_scripts/muse_image_description_batch.py
 ```
 
-### Step 2: Text Combination (Multimodal Input Creation)
+The Qwen script defaults to `train.json`; edit it to target `valid.json` or `test.json`. Both scripts emit CSVs with an identical schema so downstream steps are interchangeable.
+
+### Step 2 — Combine text with captions
+
 ```bash
-# Combine original text with generated image descriptions
 python image_description_scripts/combine_texts.py \
-    --input mmsd_image_descriptions_train.csv \
+    --input  mmsd_image_descriptions_train.csv \
     --output mmsd_combined_train.csv
 ```
 
-### Step 3: Text Classification Training
+Takes any CSV with `text` and `image_description` columns and adds a `combined_text` column.
 
-**For QwenVL + RoBERTa experiments:**
-```bash
-# Run all configurations with QwenVL-generated descriptions
-cd text_classification
-./run_experiments_robertabase.sh
-```
+### Step 3 — Train the classifier
 
-**For InternVL + RoBERTa experiments:**
-Before running the script, you need to modify the data paths in `run_experiments_robertabase.sh`:
-
-```bash
-# Change these lines in run_experiments_robertabase.sh:
---train_file "${WORKSPACE_DIR}/mmsd_image_description_with_QwenVL/mmsd_image_descriptions_train.csv" \
---valid_file "${WORKSPACE_DIR}/mmsd_image_description_with_QwenVL/mmsd_image_descriptions_valid.csv" \
---test_file "${WORKSPACE_DIR}/mmsd_image_description_with_QwenVL/mmsd_image_descriptions_test.csv" \
-
-# To:
---train_file "${WORKSPACE_DIR}/mmsd_image_description_with_InternVL/mmsd_image_descriptions_train.csv" \
---valid_file "${WORKSPACE_DIR}/mmsd_image_description_with_InternVL/mmsd_image_descriptions_valid.csv" \
---test_file "${WORKSPACE_DIR}/mmsd_image_description_with_InternVL/mmsd_image_descriptions_test.csv" \
-```
-
-Then run:
 ```bash
 cd text_classification
 ./run_experiments_robertabase.sh
 ```
 
-### Step 4: Merged Dataset Experiments (Optional)
+To run against InternVL captions instead, change the `--train_file` / `--valid_file` / `--test_file` paths in the script from `mmsd_image_description_with_QwenVL/` to `mmsd_image_description_with_InternVL/`.
 
-**Combining MuSE and MMSD Datasets:**
-We also conduct experiments by merging the processed MuSE and MMSD2.0 datasets to evaluate performance on a larger, more diverse dataset. This experiment helps analyze whether combining multiple sarcasm datasets improves model robustness and generalization.
+### Step 4 — Merged MMSD2.0 + MORE experiments
 
 ```bash
-# For merged dataset experiments
 cd text_classification
 ./run_experiments_merged.sh
 ```
 
-**Note**: Before running merged experiments, ensure you have both processed datasets:
-- MMSD2.0 with image descriptions (from Steps 1-2)
-- MuSE with image descriptions (using `muse_image_description_batch.py`)
-- Properly cleaned and merged using dataset preparation scripts
+Requires both datasets already processed through Steps 1–2, cleaned and merged. `text_classification_merged.py` handles the differing column structures and logs the MMSD/MORE composition of each split.
 
+---
 
-## Script Adaptability
+## Repository layout
 
-### Image Description Generation
-The repository includes two different VL models for image description generation:
+```
+.
+├── image_description_scripts/
+│   ├── qwen_vl_image_description.py     # Qwen2.5-VL-7B captioning
+│   ├── intern_vl_image_description.py   # InternVL3-8B captioning (LMDeploy)
+│   ├── muse_image_description_batch.py  # MORE dataset captioning
+│   └── combine_texts.py                 # text + caption concatenation
+├── text_classification/
+│   ├── text_classification_robertabase.py
+│   ├── text_classification_all_large.py
+│   ├── text_classification_merged.py
+│   ├── text_classification_merged_large.py
+│   └── run_experiments_*.sh             # sweep drivers
+├── mmsd_sample_data_qwenvl.csv          # 50 MMSD2.0 rows, Qwen captions
+├── mmsd_sample_data_internvl.csv        # 50 MMSD2.0 rows, InternVL captions
+├── muse_sample_data_qwenvl.csv          # 36 MORE rows, Qwen captions
+├── requirements_qwenvl.txt
+└── requirements_internvl.txt
+```
 
-**Qwen2.5-VL (`qwen_vl_image_description.py`)**:
-- Uses Qwen2.5-VL-7B-Instruct model
-- Supports 4-bit quantization for memory efficiency
-- Designed for MMSD2.0 dataset with train/valid/test split flexibility
-- Generates detailed descriptions up to 250 tokens
-- Requires larger GPU memory but provides high-quality descriptions
+### Sample data
 
-**InternVL3 (`intern_vl_image_description.py`)**:
-- Uses InternVL3-8B model with LMDeploy backend
-- Optimized for inference speed and efficiency
-- Processes train and validation splits automatically
-- Designed for MUSE dataset format but adaptable
-- More memory-efficient deployment
+Small samples are included so the data format is inspectable without downloading the full datasets. The two MMSD2.0 samples use the **same image IDs**, so you can compare directly how Qwen2.5-VL and InternVL3 describe an identical image.
 
-Both scripts generate CSV outputs with the same structure for consistency in downstream tasks.
-
-### Text Combination
-The `combine_texts.py` script takes any CSV file with `text` and `image_description` columns and creates a `combined_text` column for multimodal classification.
-
-### Merged Dataset Support
-**`text_classification_merged.py` and `run_experiments_merged.sh`**:
-- Supports combined MuSE + MMSD2.0 datasets for training
-- Automatically handles different dataset formats and column structures
-- Provides detailed logging of dataset composition (MUSE vs MMSD samples)
-- Uses the same configuration space as individual dataset experiments for fair comparison
-- Enables analysis of cross-dataset generalization and improved robustness
-
-## Sample Data
-
-This repository includes sample datasets with 50 examples from the processed training data, demonstrating the data structure after image description generation with different vision-language models:
-
-### Sample Files
-- **`mmsd_sample_data_qwenvl.csv`**: Sample data with image descriptions generated using Qwen2.5-VL model (MMSD2.0 dataset, 50 examples)
-- **`mmsd_sample_data_internvl.csv`**: Sample data with image descriptions generated using InternVL3 model (MMSD2.0 dataset, 50 examples)
-- **`muse_sample_data_qwenvl.csv`**: Sample data with image descriptions generated using Qwen2.5-VL model (MuSE dataset, 36 examples)
-
-Both MMSD2.0 sample files use the same image IDs, allowing for direct comparison of how different vision-language models describe the same images. The MuSE sample demonstrates the data structure for the additional dataset used in our experiments.
-
-### Data Structure
 | Column | Description |
-|--------|-------------|
-| `image_id` | Unique identifier for the image (e.g., "840006160660983809.jpg") |
+|---|---|
+| `image_id` | Image identifier, e.g. `840006160660983809.jpg` |
 | `text` | Original social media post text |
-| `label` | Sarcasm label (0: non-sarcastic, 1: sarcastic) |
-| `image_description` | Generated description (Qwen2.5-VL or InternVL3 depending on file) |
+| `label` | Sarcasm label — 0 non-sarcastic, 1 sarcastic |
+| `image_description` | VLM-generated caption |
 | `image_location` | Path where the image was found during processing |
-| `combined_text` | Concatenation of original text and image description |
-
-**Note:** The sample data is provided for format reference, model comparison, and testing purposes. For full experiments, process the complete MMSD2.0 dataset using the provided scripts.
-
-## Citations
-
-## Results
-
-We conducted a series of experiments using different configurations (learning rate and batch size) for various models. The results for the sarcasm detection task are summarized below:
-
-### Table: Best performing configuration per setting (no config details)
-
-This table summarizes the best performance achieved for each input modality and model combination, providing a concise overview of the highest metrics across all configurations.
-
-| Input             | Model             | Acc   | F1    | Prec  | Recall |
-|-------------------|-------------------|-------|-------|-------|--------|
-| text-only         | Qwen + Roberta    | 78.42 | 77.71 | 78.60 | 78.42  |
-| text-only         | InternVL + Roberta| 78.08 | 77.86 | 78.48 | 78.08  |
-| image-only        | Qwen + Roberta    | 74.51 | 73.88 | 74.42 | 74.51  |
-| image-only        | InternVL + Roberta| 76.26 | 75.93 | 76.47 | 76.26  |
-| combined          | Qwen + Roberta    | 82.07 | 81.88 | 82.42 | 82.07  |
-| combined          | Qwen + RobertaLarge | 82.61 | 82.36 | 82.67 | 82.61  |
-| combined          | InternVL + Roberta| 81.82 | 81.62 | 82.14 | 81.82  |
-| combined*         | Qwen + Roberta    | 84.64 | 84.61 | 84.90 | 84.64  |
-| combined*         | Qwen + RobertaLarge | **85.37** | **85.33** | **85.64**  | **85.37** |
-| combined          | Qwen + ModernBERT | 84.72 | 84.59 | 85.21 | 84.72 |
-| Baseline          | MMSD2.0           | 85.64 | 84.10 | 80.33 | 88.24  |
-
-*Note: The best performing configuration across all settings is highlighted in bold.*
-*Note: Results marked with * indicate experiments conducted on a merged version with cleaned (deleted emojis and spurious hashtags) More Dataset.*
-
-### All Experimental Results
-
-### Table: QwenVL + roberta base results
-
-| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
-|-----------------|-------|----------|-----------|--------|
-| (5e-05, 4)      | 80.41 | 80.53    | 81.32     | 80.53  |
-| (2e-05, 4)      | 81.12 | 81.40    | 81.52     | 81.40  |
-| (5e-05, 8)      | **81.88** | **82.07** | **82.42** | **82.07** |
-| (2e-05, 8)      | 81.36 | 81.53    | 82.01     | 81.53  |
-| (5e-05, 16)     | 81.32 | 82.04    | 81.72     | 81.61  |
-| (2e-05, 16)     | 80.66 | 80.86    | 81.21     | 80.86  |
-
-*Note: The best performing configuration is highlighted in bold.*
-
-### Table: InternVL3-8B + roberta base results
-
-| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
-|-----------------|-------|----------|-----------|--------|
-| (5e-05, 4)      | 79.68 | 79.83    | 80.49     | 79.83  |
-| (2e-05, 4)      | 79.94 | 80.37    | 80.34     | 80.37  |
-| (5e-05, 8)      | **81.62** | **81.82** | **82.14** | **81.82** |
-| (2e-05, 8)      | 79.67 | 80.03    | 80.07     | 80.03  |
-| (5e-05, 16)     | 80.30 | 80.68    | 80.68     | 80.70  |
-| (2e-05, 16)     | 79.31 | 79.87    | 79.80     | 79.87  |
-
-*Note: The best performing configuration is highlighted in bold.*
-
-We also conducted experiments with different data configurations to analyze the contribution of different modalities:
-
-### Table: QwenVL + roberta base (only test set) results
-
-This table shows the performance of the QwenVL + Roberta Base model when trained and evaluated on the **test set only**, using combined text and image descriptions.
-
-| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
-|-----------------|-------|----------|-----------|--------|
-| (5e-05, 4)      | 73.40 | 75.10    | 74.85     | 75.10  |
-| (2e-05, 4)      | **77.71** | **78.42**    | **78.60**     | **78.42**  |
-| (5e-05, 8)      | 76.93 | 78.01    | 77.87     | 78.01  |
-| (2e-05, 8)      | 73.02 | 74.69    | 74.42     | 74.69  |
-| (5e-05, 16)     | 74.51 | 75.93    | 75.71     | 75.93  |
-| (2e-05, 16)     | 74.12 | 75.52    | 75.29     | 75.52  |
+| `combined_text` | `text` + `image_description`, the classifier input |
 
 ---
 
-### Table: QwenVL + roberta base (only text) results
+## Citation
 
-This table presents the results of the QwenVL + Roberta Base model trained and evaluated using **only the textual content** from the dataset.
+```bibtex
+@inproceedings{koc2025lightweight,
+  title     = {Lightweight Approach for Multi-Modal Irony Detection by Image Caption Generation},
+  author    = {Ko\c{c}, Beyza Nur and \c{C}ekinel, Recep F{\i}rat and Karag\"{o}z, P{\i}nar},
+  booktitle = {2025 IEEE International Conference on Big Data (BigData)},
+  year      = {2025},
+  publisher = {IEEE}
+}
+```
 
-| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
-|-----------------|-------|----------|-----------|--------|
-| (5e-05, 4)      | 66.37 | 66.67    | 67.21     | 66.67  |
-| (2e-05, 4)      | **76.01** | **76.38**    | **76.51**     | **76.38**  |
-| (5e-05, 8)      | 36.29 | 56.95    | 56.95     | 56.95  |
-| (2e-05, 8)      | 74.18 | 74.97    | 74.84     | 74.97  |
-| (5e-05, 16)     | 75.77 | 76.25    | 76.30     | 76.30  |
-| (2e-05, 16)     | 75.93 | 76.09    | 76.81     | 76.09  |
+Please also cite the dataset papers if you use them:
 
----
+- **MMSD2.0** — Qin et al., *MMSD2.0: Towards a Reliable Multi-modal Sarcasm Detection System*, Findings of ACL 2023.
+- **MORE** — Desai et al., *Nice Perfume. How Long Did You Marinate in It? Multimodal Sarcasm Explanation*, AAAI 2022.
 
-### Table: QwenVL + roberta base (only image description) results
+## Acknowledgments
 
-This table details the performance of the QwenVL + Roberta Base model when trained and evaluated using **only the generated image descriptions** as input.
-
-| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
-|-----------------|-------|----------|-----------|--------|
-| (5e-05, 4)      | 36.29 | 56.95    | 32.44     | 56.95  |
-| (2e-05, 4)      | **73.88** | **74.51**    | **74.42**     | **74.51** |
-| (5e-05, 8)      | 68.35 | 68.87    | 68.98     | 68.87  |
-| (2e-05, 8)      | 73.65 | 74.35    | 74.23     | 74.35  |
-| (5e-05, 16)     | 74.53 | 74.48    | 74.51     | 74.48  |
-| (2e-05, 16)     | 74.53 | 75.18    | 75.08     | 75.18  |
-
----
-
-### Table: InternVL3-8B + roberta-base results (text-only)
-
-This table shows the performance of the InternVL3-8B + Roberta Base model when trained and evaluated using **only the textual content** from the dataset.
-
-| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
-|-----------------|-------|----------|-----------|--------|
-| (5e-05, 4)      | 36.29 | 56.95    | 32.44     | 56.95  |
-| (2e-05, 4)      | **77.86** | **78.08** | **78.48** | **78.08** |
-| (5e-05, 8)      | 76.09 | 76.26    | 76.96     | 76.26  |
-| (2e-05, 8)      | 76.21 | 76.38    | 77.07     | 76.38  |
-| (5e-05, 16)     | 77.20 | 77.38    | 77.97     | 77.38  |
-| (2e-05, 16)     | 77.17 | 77.38    | 77.86     | 77.38  |
-
----
-
-### Table: InternVL3-8B + roberta-base results (image description only)
-
-This table details the performance of the InternVL3-8B + Roberta Base model when trained and evaluated using **only the generated image descriptions** as input.
-
-| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
-|-----------------|-------|----------|-----------|--------|
-| (5e-05, 4)      | 67.81 | 68.12    | 68.60     | 68.12  |
-| (2e-05, 4)      | **75.93** | **76.26** | **76.47** | **76.26** |
-| (5e-05, 8)      | 74.31 | 74.84    | 74.81     | 74.84  |
-| (2e-05, 8)      | 75.50 | 75.84    | 76.04     | 75.84  |
-| (5e-05, 16)     | 74.40 | 74.68    | 75.05     | 74.68  |
-| (2e-05, 16)     | 74.83 | 75.22    | 75.35     | 75.22  |
-
----
-
-### Table: QwenVL + roberta large results
-
-This table presents the performance of the QwenVL + Roberta Large model when using combined text and image descriptions.
-
-| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
-|-----------------|-------|----------|-----------|--------|
-| (5e-05, 4)      | 36.29 | 56.95    | 32.44     | 56.95  |
-| (2e-05, 4)      | **82.31** | **82.61** | **82.67** | **82.61** |
-| (5e-05, 8)      | 79.96 | 80.24    | 80.40     | 80.24  |
-| (2e-05, 8)      | 82.36 | 82.57    | 82.86     | 82.57  |
-| (5e-05, 16)     | 65.17 | 68.04    | 68.36     | 68.04  |
-| (2e-05, 16)     | 81.99 | 82.19    | 82.48     | 82.19  |
-
----
-
-### Table: QwenVL + ModernBERT-large results
-
-This table displays the performance metrics for the ModernBERT-large model.
-
-| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
-|-----------------|-------|----------|-----------|--------|
-| (1e-05, 8)      | 83.87 | 84.02    | 84.46     | 84.02  |
-| (2e-05, 8)      | **84.59** | **84.72** | **85.21** | **84.72** |
-| (5e-05, 8)      | 81.58 | 81.74    | 82.25     | 81.74  |
-| (1e-05, 16)     | 82.85 | 82.94    | 83.81     | 82.94  |
-| (2e-05, 16)     | 83.10 | 83.19    | 84.06     | 83.19  |
-| (5e-05, 16)     | 81.14 | 81.20    | 82.55     | 81.20  |
-
-
-*Note: ModernBERT-large experiments were conducted by a collaborating research team. The implementation scripts for this model are not included in this repository.*
-
----
-
-### Table: QwenVL + roberta base (MMSD2.0 + MORE cleaned) results
-
-This table presents the performance of the QwenVL + Roberta Base model on a merged version with cleaned (deleted emojis and spurious hashtags) More Dataset.
-
-| Config (lr, bs) | F1    | Accuracy | Precision | Recall |
-|-----------------|-------|----------|-----------|--------|
-| (2e-05, 4)      | 84.18 | 84.21    | 84.38     | 84.21  |
-| (5e-05, 4)      | 64.79 | 65.70    | 67.30     | 65.70  |
-| (2e-05, 8)      | **84.61** | **84.64** | **84.90** | **84.64** |
-| (5e-05, 8)      | 33.47 | 50.31    | 25.31     | 50.31  |
-| (2e-05, 16)     | 84.39 | 84.43    | 84.62     | 84.43  |
-| (5e-05, 16)     | 84.29 | 84.32    | 84.50     | 84.32  |
-
-*Note: The best performing configuration for each experimental setup is highlighted in bold.*
-
-### Table: XLM-Roberta-Large + Merged (Cleaned) results
-
-This table presents the performance of the XLM-Roberta-Large model on a merged version with cleaned (deleted emojis and spurious hashtags) MORE Dataset.
-
-| Config (lr, bs) | F1     | Accuracy | Precision | Recall |
-|-----------------|--------|----------|-----------|--------|
-| (2e-05, 2)      | 84.83  | 84.86    | 85.05     | 84.86  |
-| (5e-05, 2)      | 33.47  | 50.31    | 25.31     | 50.31  |
-| (1e-04, 2)      | 33.47  | 50.31    | 25.31     | 50.31  |
-| (2e-05, 4)      | 85.23  | 85.26    | 85.44     | 85.26  |
-| (5e-05, 4)      | 33.47  | 50.31    | 25.31     | 50.31  |
-| (1e-04, 4)      | 33.47  | 50.31    | 25.31     | 50.31  |
-| (2e-05, 8)      | **85.33** | **85.37** | **85.64** | **85.37** |
-
-*Note: The best performing configuration for each experimental setup is highlighted in bold.*
+This work was carried out as guided research (CENG488) at the Department of Computer Engineering, Middle East Technical University, supervised by Prof. Dr. Pınar Karagöz and Recep Fırat Çekinel.
 
 ## License
 
-## Acknowledgments
+MIT — see [LICENSE](LICENSE).
