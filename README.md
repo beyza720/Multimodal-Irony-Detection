@@ -4,7 +4,7 @@ Code for **"Lightweight Approach for Multi-Modal Irony Detection by Image Captio
 
 Beyza Nur Koç, Recep Fırat Çekinel, Pınar Karagöz — Department of Computer Engineering, Middle East Technical University.
 
-📄 [Paper (PDF)](Lightweight%20Approach%20for%20Multi-Modal%20Irony%20Detection%20by%20Image%20Caption%20Generation.pdf) · 🔗 [DOI](ADD_DOI_LINK_HERE)
+📄 [Paper (PDF)](Lightweight%20Approach%20for%20Multi-Modal%20Irony%20Detection%20by%20Image%20Caption%20Generation.pdf) · 🔗 [DOI: 10.1109/BigData66926.2025.11402099](https://doi.org/10.1109/BigData66926.2025.11402099) · 📚 [IEEE Xplore](https://ieeexplore.ieee.org/document/11402099)
 
 ---
 
@@ -21,8 +21,6 @@ Instead, we **turn the image into text and then classify text**:
 The multimodal problem becomes a text classification problem, so only the text encoder is ever trained.
 
 **Result:** this matches Multi-view CLIP on MMSD2.0 (84.59 vs. 84.64 macro-F1) and outperforms it on the augmented MMSD2.0+MORE benchmark (85.95 vs. 84.81 macro-F1) — without any joint visual–textual training.
-
-![Pipeline overview](docs/pipeline.png)
 
 ---
 
@@ -336,12 +334,13 @@ Small samples are included so the data format is inspectable without downloading
 ## Citation
 
 ```bibtex
-@inproceedings{koc2025lightweight,
-  title     = {Lightweight Approach for Multi-Modal Irony Detection by Image Caption Generation},
-  author    = {Ko\c{c}, Beyza Nur and \c{C}ekinel, Recep F{\i}rat and Karag\"{o}z, P{\i}nar},
+@INPROCEEDINGS{11402099,
+  author    = {Koc, Beyza Nur and Cekinel, Recep Firat and Karagoz, Pinar},
   booktitle = {2025 IEEE International Conference on Big Data (BigData)},
+  title     = {Lightweight Approach for Multi-Modal Irony Detection by Image Caption Generation},
   year      = {2025},
-  publisher = {IEEE}
+  pages     = {2908-2914},
+  doi       = {10.1109/BigData66926.2025.11402099}
 }
 ```
 
